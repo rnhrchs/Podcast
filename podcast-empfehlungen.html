@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podcast-Empfehlungen</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap');
+
+    :root {
+      --bg: #2b2b2b;
+      --karte: #363636;
+      --rand: #484848;
+      --akzent: #9e9e9e;
+      --akzent-hell: #c8c8c8;
+      --text: #e8e8e8;
+      --text-mittel: #c0c0c0;
+      --text-grau: #888;
+      --gruen: #1ed760;
+      --rot: #ff5555;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 300;
+    }
+
+    .seite {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.2rem 5rem;
+    }
+
+    .kopf {
+      text-align: center;
+      padding: 1.5rem 0 2rem;
+      border-bottom: 1px solid var(--rand);
+      margin-bottom: 2rem;
+    }
+
+    .kopf h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 5vw, 2.5rem);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .kopf p { font-size: 0.9rem; color: var(--text-grau); font-style: italic; }
+
+    .einleitung {
+      background: var(--karte);
+      border-left: 3px solid var(--akzent);
+      border-radius: 0 6px 6px 0;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 2rem;
+      font-size: 0.97rem;
+      line-height: 1.8;
+      color: var(--text-mittel);
+    }
+
+    .abschnitt {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--akzent-hell);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .abschnitt::after { content: ''; flex: 1; height: 1px; background: var(--rand); }
+
+    .abschnitt-sub {
+      font-size: 0.85rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-bottom: 1.2rem;
+    }
+
+    /* EMPFEHLUNGSKARTE */
+    .karte {
+      background: var(--karte);
+      border: 1px solid var(--rand);
+      border-radius: 8px;
+      padding: 1.1rem;
+      margin-bottom: 0.9rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+    .karte:hover { border-color: var(--akzent); }
+
+    /* COVER-BILD */
+    .cover {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: #444;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cover-fallback {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: white;
+    }
+
+    .mini-cover {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: #444;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .mini-cover-fallback {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: 0.7rem;
+      color: white;
+    }
+
+    .karte-inhalt { flex: 1; min-width: 0; }
+
+    .karte-titel {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 0.2rem;
+    }
+
+    .karte-meta {
+      font-size: 0.8rem;
+      color: var(--akzent);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+
+    .karte-beschreibung {
+      font-size: 0.9rem;
+      color: var(--text-mittel);
+      line-height: 1.65;
+      margin-bottom: 0.7rem;
+    }
+
+    .karte-links {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    a.btn {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+      font-family: 'Source Serif 4', Georgia, serif;
+    }
+    a.btn:hover { opacity: 0.75; }
+    a.btn.spotify { background: rgba(30,215,96,0.14); border: 1px solid rgba(30,215,96,0.35); color: var(--gruen); }
+    a.btn.youtube { background: rgba(255,85,85,0.12); border: 1px solid rgba(255,85,85,0.28); color: var(--rot); }
+
+    .hinweis { font-size: 0.75rem; color: var(--text-grau); font-style: italic; align-self: center; }
+
+    hr { border: none; border-top: 1px solid var(--rand); margin: 2rem 0; }
+
+    .gruppe { margin-bottom: 1.5rem; }
+
+    .gruppe-titel {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--akzent-hell);
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--rand);
+      margin-bottom: 0.5rem;
+    }
+
+    .eintrag {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .eintrag-nr {
+      color: var(--text-grau);
+      font-size: 0.75rem;
+      min-width: 1.2rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .eintrag-text { flex: 1; min-width: 0; }
+
+    a.eintrag-link {
+      color: var(--text-mittel);
+      text-decoration: none;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      display: block;
+      transition: color 0.15s;
+    }
+    a.eintrag-link:hover { color: var(--text); text-decoration: underline; }
+
+    .kein-link {
+      color: var(--text-grau);
+      font-style: italic;
+      font-size: 0.83rem;
+      line-height: 1.4;
+    }
+
+    .fuss {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--rand);
+      color: var(--text-grau);
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 480px) {
+      .seite { padding: 1.2rem 0.8rem 3rem; }
+      .cover { width: 56px; height: 56px; }
+    }
+  </style>
+</head>
+<body>
+<div class="seite">
+
+  <header class="kopf">
+    <h1>Podcast-Empfehlungen</h1>
+    <p>Zwei Jahre · Hunderte Stunden · 31 Lieblingsfolgen</p>
+  </header>
+
+  <div class="einleitung">
+    Hey zusammen 👋<br><br>
+    Ich hab in den letzten zwei Jahren mehrere hundert Stunden Podcast gehört. Die besten Folgen stelle ich euch hier kurz vor – mit einem Satz, warum sie sich lohnen. Ganz unten findet ihr die vollständige Liste mit allen 31 Folgen.
+  </div>
+
+  <h2 class="abschnitt">Meine Lieblingsfolgen</h2>
+  <p class="abschnitt-sub">Hier würde ich anfangen – diese Folgen haben mich am meisten beschäftigt.</p>
+
+  <!-- KARTE 1 -->
+  <div class="karte">
+    <div class="cover" id="cover-ag">
+      <img src="" alt="Alles gesagt?" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">AG</span>
+    </div>
+    <div class="karte-inhalt">
+      <div class="karte-titel">Matthias Maurer – Wie lebt es sich im All?</div>
+      <div class="karte-meta">Alles gesagt? · ZEIT · 9 Std. 46 Min.</div>
+      <div class="karte-beschreibung">Fast zehn Stunden mit dem deutschen Astronauten – klingt lang, fühlt sich kurz an. Er erzählt, wie es ist, mit einer Rakete ins All geschossen zu werden, und was der Alltag auf der Raumstation wirklich bedeutet.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/3t0TymEnHKeNr9t36xL7jX" class="btn spotify" target="_blank">▶ Spotify</a>
+        <a href="https://www.youtube.com/watch?v=Pcbv4bv0YEk" class="btn youtube" target="_blank">▶ YouTube (kostenlos)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARTE 2 -->
+  <div class="karte">
+    <div class="cover" id="cover-ag2">
+      <img src="" alt="Alles gesagt?" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">AG</span>
+    </div>
+    <div class="karte-inhalt">
+      <div class="karte-titel">Rezo – Warum willst du Bundeskanzler sein?</div>
+      <div class="karte-meta">Alles gesagt? · ZEIT · 8 Std. 40 Min.</div>
+      <div class="karte-beschreibung">Auch wer kein Rezo-Fan ist: Dieses Gespräch ist außergewöhnlich. Er spricht über sein CDU-Video, Klimapolitik und warum er ernsthaft über Politik nachdenkt.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/1LLFCiAtWiE3uCHnYSXXAf" class="btn spotify" target="_blank">▶ Spotify (ZEIT-Abo)</a>
+        <span class="hinweis">⚠ Kostenpflichtig</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARTE 3 -->
+  <div class="karte">
+    <div class="cover" id="cover-ag3">
+      <img src="" alt="Alles gesagt?" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">AG</span>
+    </div>
+    <div class="karte-inhalt">
+      <div class="karte-titel">„Lage der Nation" – Wie ist die Lage der Nation?</div>
+      <div class="karte-meta">Alles gesagt? · ZEIT · 7 Std. 35 Min.</div>
+      <div class="karte-beschreibung">Philip Banse und Ulf Buermeyer zu Gast beim ZEIT-Podcast. Ein tiefes Gespräch über Demokratie, Justiz und Podcast-Journalismus in Deutschland.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/3eZmFua9h6iSZ1vN8CLLED" class="btn spotify" target="_blank">▶ Spotify</a>
+        <a href="https://www.youtube.com/watch?v=SVbuINNRU7g" class="btn youtube" target="_blank">▶ YouTube (kostenlos)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARTE 4 -->
+  <div class="karte">
+    <div class="cover" id="cover-nf">
+      <img src="" alt="Nur eine Frage" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">NF</span>
+    </div>
+    <div class="karte-inhalt">
+      <div class="karte-titel">Gibt es Gott, Heino Falcke?</div>
+      <div class="karte-meta">Nur eine Frage · ZEIT · 1 Std. 12 Min.</div>
+      <div class="karte-beschreibung">Der Wissenschaftler, der das erste Schwarze-Loch-Foto aufgenommen hat, spricht über Glauben und Physik. Selten so klar gehört, wie Naturwissenschaft und Glaube zusammengedacht werden können.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/4jnvEIBxcM1GkPAHJVNrST" class="btn spotify" target="_blank">▶ Spotify (ZEIT-Abo)</a>
+        <span class="hinweis">⚠ Kostenpflichtig</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARTE 5 -->
+  <div class="karte">
+    <div class="cover" id="cover-ek">
+      <img src="" alt="In extremen Köpfen" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">EK</span>
+    </div>
+    <div class="karte-inhalt">
+      <div class="karte-titel">Wie es ist, beim KSK zu dienen – mit Oliver Schneider</div>
+      <div class="karte-meta">In extremen Köpfen · Leon Windscheid · 1 Std. 30 Min.</div>
+      <div class="karte-beschreibung">Ein sehr ehrlicher Einblick in eine Welt, die man von außen kaum kennt. Oliver Schneider spricht offen über Auswahl, Belastung und was es mit einem Menschen macht.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/3RaGU7NMvnhpYvbJiLhZWI" class="btn spotify" target="_blank">▶ Spotify</a>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2 class="abschnitt">Alle 31 Folgen</h2>
+  <p class="abschnitt-sub">Vollständige Liste – alle Folgen, die ich mir in den letzten zwei Jahren gemerkt habe.</p>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Talk ohne Gast · Till Reiners &amp; Moritz Neumeier</div>
+    <div class="eintrag"><span class="eintrag-nr">1</span><div class="mini-cover" id="mc-tog"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/47wEeOYAVfMwpsEjibbhMD" class="eintrag-link" target="_blank">Bämcakes</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">2</span><div class="mini-cover" id="mc-tog2"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div><div class="eintrag-text"><a href="https://www.youtube.com/watch?v=nULTYXiMQBI" class="eintrag-link" target="_blank">Ich wohn im Keller ↗ YouTube</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">3</span><div class="mini-cover" id="mc-tog3"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/7yv4KxhZMhxUB81s00giSh" class="eintrag-link" target="_blank">Kein Ort für Spielereien</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">4</span><div class="mini-cover" id="mc-tog4"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/5XxfGmyEsGWQpfxZ095sJm" class="eintrag-link" target="_blank">Gasthermen-Mann</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">5</span><div class="mini-cover" id="mc-tog5"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/7txYNQOj6v7dCKDlf6fmyy" class="eintrag-link" target="_blank">Schirmherr Reiners</a></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Alles gesagt? · ZEIT (teils kostenpflichtig)</div>
+    <div class="eintrag"><span class="eintrag-nr">6</span><div class="mini-cover" id="mc-ag"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">AG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/3eZmFua9h6iSZ1vN8CLLED" class="eintrag-link" target="_blank">„Lage der Nation" – Wie ist die Lage der Nation?</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">7</span><div class="mini-cover" id="mc-ag2"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">AG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/1LLFCiAtWiE3uCHnYSXXAf" class="eintrag-link" target="_blank">Rezo – Warum willst du Bundeskanzler sein?</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">8</span><div class="mini-cover" id="mc-ag3"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">AG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/3t0TymEnHKeNr9t36xL7jX" class="eintrag-link" target="_blank">Matthias Maurer – Wie lebt es sich im All?</a></div></div>
+    <div class="eintrag"><span class="eintrag-nr">9</span><div class="mini-cover" id="mc-ag4"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">AG</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/1f7RKJry6PvilVhdKpTkcV" class="eintrag-link" target="_blank">Richard Socher – Was denken Maschinen?</a></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Nur eine Frage · ZEIT (kostenpflichtig)</div>
+    <div class="eintrag"><span class="eintrag-nr">10</span><div class="mini-cover" id="mc-nf"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">NF</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/4jnvEIBxcM1GkPAHJVNrST" class="eintrag-link" target="_blank">Gibt es Gott, Heino Falcke?</a></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Lage der Nation · Philip Banse &amp; Ulf Buermeyer</div>
+    <div class="eintrag"><span class="eintrag-nr">11</span><div class="mini-cover" id="mc-ln"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">LN</span></div><div class="eintrag-text"><a href="https://open.spotify.com/show/7a3LWj5xSFhFRYmztS8wgK" class="eintrag-link" target="_blank">LdN462 – Trump will Grönland, Kanadas Premier, EU-Parlament</a></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">NEU DENKEN · ZEIT</div>
+    <div class="eintrag"><span class="eintrag-nr">12</span><div class="mini-cover" id="mc-nd"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">ND</span></div><div class="eintrag-text"><span class="kein-link">Zeit NEU DENKEN mit Teresa Bücker – Suche in Spotify: „Teresa Bücker NEU DENKEN"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">MARCANT Podcast</div>
+    <div class="eintrag"><span class="eintrag-nr">13</span><div class="mini-cover" id="mc-ma"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">MA</span></div><div class="eintrag-text"><span class="kein-link">Kevin Kühnert über Nazis, SPD und Erbschaftssteuer – Suche: „Kevin Kühnert MARCANT"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Fun Facts.</div>
+    <div class="eintrag"><span class="eintrag-nr">14</span><div class="mini-cover" id="mc-ff"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">FF</span></div><div class="eintrag-text"><span class="kein-link">Warum Deutschland Steuerhinterziehung nicht bekämpft – Suche: „Steuerhinterziehung Fun Facts"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">15</span><div class="mini-cover" id="mc-ff2"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">FF</span></div><div class="eintrag-text"><span class="kein-link">Wie zerstört Gaza wirklich ist – Suche: „Gaza Fun Facts Abdul"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">50 Minuten</div>
+    <div class="eintrag"><span class="eintrag-nr">16</span><div class="mini-cover" id="mc-50"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">50</span></div><div class="eintrag-text"><span class="kein-link">Männer, die über Gefühle sprechen – Suche: „Männer Gefühle 50 Minuten"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Der Rest ist Geschichte</div>
+    <div class="eintrag"><span class="eintrag-nr">17</span><div class="mini-cover" id="mc-rg"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">RG</span></div><div class="eintrag-text"><span class="kein-link">Krieg und Frieden – Was nutzt Pazifismus? – Suche: „Pazifismus Der Rest ist Geschichte"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">18</span><div class="mini-cover" id="mc-rg2"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">RG</span></div><div class="eintrag-text"><span class="kein-link">Die Schweiz – Kampf um Neutralität – Suche: „Schweiz Neutralität Der Rest ist Geschichte"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Bin ich das Arschloch?</div>
+    <div class="eintrag"><span class="eintrag-nr">19</span><div class="mini-cover" id="mc-ba"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">BA</span></div><div class="eintrag-text"><span class="kein-link">Folge 25 – Lieber masturbieren als mit Freundin schlafen? – Suche: „Bin ich das Arschloch Folge 25"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">On Being · Krista Tippett</div>
+    <div class="eintrag"><span class="eintrag-nr">20</span><div class="mini-cover" id="mc-ob"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">OB</span></div><div class="eintrag-text"><span class="kein-link">Pico Iyer – Ungeschnitten – Suche: „Pico Iyer On Being unedited"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">In extremen Köpfen · Leon Windscheid</div>
+    <div class="eintrag"><span class="eintrag-nr">21</span><div class="mini-cover" id="mc-ek"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">EK</span></div><div class="eintrag-text"><a href="https://open.spotify.com/episode/3RaGU7NMvnhpYvbJiLhZWI" class="eintrag-link" target="_blank">Wie es ist, beim KSK zu dienen – mit Oliver Schneider</a></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Dark Matters – Geheimnisse der Geheimdienste</div>
+    <div class="eintrag"><span class="eintrag-nr">22</span><div class="mini-cover" id="mc-dm"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">DM</span></div><div class="eintrag-text"><span class="kein-link">Wie arbeitet der Verfassungsschutz? – Suche: „Verfassungsschutz Dark Matters"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Schreiben &amp; Schreddern · Marc-Uwe Kling</div>
+    <div class="eintrag"><span class="eintrag-nr">23</span><div class="mini-cover" id="mc-ss"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">SS</span></div><div class="eintrag-text"><span class="kein-link">Marc-Uwe Kling trifft Inka und Markus Brand – Suche: „Kling Inka Markus Brand Schreiben"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">24</span><div class="mini-cover" id="mc-ss2"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">SS</span></div><div class="eintrag-text"><span class="kein-link">Marc-Uwe Kling trifft Sebastian Fitzek – Suche: „Kling Sebastian Fitzek Schreiben"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Deutschland3000 · Eva Schulz</div>
+    <div class="eintrag"><span class="eintrag-nr">25</span><div class="mini-cover" id="mc-d3"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">D3</span></div><div class="eintrag-text"><span class="kein-link">Ahrtal – Ein Jahr nach der Flut – Suche: „Ahrtal Deutschland3000"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">26</span><div class="mini-cover" id="mc-d3b"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">D3</span></div><div class="eintrag-text"><span class="kein-link">Riccardo Simonetti – Warum war berühmt werden der einzige Weg? – Suche: „Riccardo Simonetti Deutschland3000"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">27</span><div class="mini-cover" id="mc-d3c"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">D3</span></div><div class="eintrag-text"><span class="kein-link">Said Etris Hashemi – Er überlebte Hanau 2020 – Suche: „Hanau Said Deutschland3000"</span></div></div>
+    <div class="eintrag"><span class="eintrag-nr">28</span><div class="mini-cover" id="mc-d3d"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">D3</span></div><div class="eintrag-text"><span class="kein-link">Phenix Kühnert – Wann ist eine Frau eine Frau? – Suche: „Phenix Kühnert Deutschland3000"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Gefühlte Fakten</div>
+    <div class="eintrag"><span class="eintrag-nr">29</span><div class="mini-cover" id="mc-gf"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">GF</span></div><div class="eintrag-text"><span class="kein-link">Ich ruf meine Frau an – Suche: „Ich ruf meine Frau an Gefühlte Fakten"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">Finanzen ganz einfach · Saidi Sulilatu</div>
+    <div class="eintrag"><span class="eintrag-nr">30</span><div class="mini-cover" id="mc-fi"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">FI</span></div><div class="eintrag-text"><span class="kein-link">Kommt die Inflation richtig zurück? (Folge 294) – Suche: „Inflation Finanztip 294"</span></div></div>
+  </div>
+
+  <div class="gruppe">
+    <div class="gruppe-titel">UNFASSBAR · Simplicissimus</div>
+    <div class="eintrag"><span class="eintrag-nr">31</span><div class="mini-cover" id="mc-uf"><img src="" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">UF</span></div><div class="eintrag-text"><span class="kein-link">Die Wahrheit über grünen Wasserstoff – Suche: „grüner Wasserstoff UNFASSBAR"</span></div></div>
+  </div>
+
+  <div class="fuss">Mai 2026</div>
+
+</div>
+
+<script>
+// iTunes Search API – gibt öffentliche Podcast-Cover zurück (CORS-frei)
+// Jeder Eintrag: { suchbegriff, apple_podcast_id (falls bekannt), ziel-IDs }
+const podcasts = [
+  { id: 1371996866, name: "Talk ohne Gast",         gross: ["cover-ag","cover-ag2","cover-ag3"], klein: ["mc-tog","mc-tog2","mc-tog3","mc-tog4","mc-tog5"] },
+  { id: 1374777021, name: "Alles gesagt",            gross: ["cover-ag","cover-ag2","cover-ag3"], klein: ["mc-ag","mc-ag2","mc-ag3","mc-ag4"] },
+  { id: 1532562398, name: "Nur eine Frage ZEIT",     gross: ["cover-nf"],                         klein: ["mc-nf"] },
+  { id: 1386804215, name: "Lage der Nation",         gross: [],                                   klein: ["mc-ln"] },
+  { id: 1468442325, name: "In extremen Koepfen",     gross: ["cover-ek"],                         klein: ["mc-ek"] },
+  { id: 1523660588, name: "Fun Facts Podcast",       gross: [],                                   klein: ["mc-ff","mc-ff2"] },
+  { id: 1439087496, name: "50 Minuten",              gross: [],                                   klein: ["mc-50"] },
+  { id: 1464388507, name: "Der Rest ist Geschichte", gross: [],                                   klein: ["mc-rg","mc-rg2"] },
+  { id: 1574501232, name: "Bin ich das Arschloch",   gross: [],                                   klein: ["mc-ba"] },
+  { id: 150892958,  name: "On Being Krista Tippett", gross: [],                                   klein: ["mc-ob"] },
+  { id: 1391714673, name: "Dark Matters Geheimdienste", gross: [],                                klein: ["mc-dm"] },
+  { id: 1530609298, name: "Schreiben Schreddern Marc-Uwe Kling", gross: [],                      klein: ["mc-ss","mc-ss2"] },
+  { id: 1441765392, name: "Deutschland3000 Eva Schulz", gross: [],                               klein: ["mc-d3","mc-d3b","mc-d3c","mc-d3d"] },
+  { id: 1577156827, name: "Gefühlte Fakten Podcast", gross: [],                                  klein: ["mc-gf"] },
+  { id: 1437528542, name: "Finanzen ganz einfach Saidi", gross: [],                              klein: ["mc-fi"] },
+  { id: 1502924447, name: "UNFASSBAR Simplicissimus", gross: [],                                 klein: ["mc-uf"] },
+  { id: 1489904050, name: "MARCANT Podcast",         gross: [],                                  klein: ["mc-ma"] },
+  { id: 1510562514, name: "NEU DENKEN ZEIT",         gross: [],                                  klein: ["mc-nd"] },
+];
+
+function setzeCovers(url, grossIds, kleinIds) {
+  grossIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const img = el.querySelector('img');
+    if (img) img.src = url;
+  });
+  kleinIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const img = el.querySelector('img');
+    if (img) img.src = url;
+  });
+}
+
+async function ladeCover(podcast) {
+  try {
+    const url = `https://itunes.apple.com/lookup?id=${podcast.id}&entity=podcast&limit=1`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.results && d.results[0] && d.results[0].artworkUrl600) {
+      setzeCovers(d.results[0].artworkUrl600, podcast.gross, podcast.klein);
+    }
+  } catch(e) {
+    // Fallback bleibt sichtbar
+  }
+}
+
+// Lade alle Cover nacheinander
+podcasts.forEach(p => ladeCover(p));
+</script>
+</body>
+</html>
