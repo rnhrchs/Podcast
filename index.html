@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNH Podcast-Empfehlungen</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+    :root {
+      --bg: #2b2b2b;
+      --karte: #363636;
+      --rand: #484848;
+      --akzent: #9e9e9e;
+      --akzent-hell: #c8c8c8;
+      --text: #e8e8e8;
+      --text-mittel: #c0c0c0;
+      --text-grau: #888;
+      --gruen: #1ed760;
+      --rot: #ff5555;
+      --blau: #5aa9ff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .fortschritt {
+      position: fixed; top: 0; left: 0;
+      width: 0%; height: 3px;
+      background: var(--akzent-hell);
+      z-index: 100;
+      transition: width 0.1s;
+    }
+
+    .seite { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.2rem 5rem; }
+
+    .kopf {
+      text-align: center;
+      padding: 1.5rem 0 2.2rem;
+      border-bottom: 1px solid var(--rand);
+      margin-bottom: 2rem;
+    }
+    .kopf h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .einleitung {
+      background: var(--karte);
+      border-left: 3px solid var(--akzent);
+      border-radius: 0 6px 6px 0;
+      padding: 1.3rem 1.5rem;
+      margin-bottom: 2.5rem;
+      font-size: 1rem;
+      line-height: 1.75;
+      color: var(--text-mittel);
+    }
+
+    .abschnitt {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--akzent-hell);
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .abschnitt::after { content: ''; flex: 1; height: 1px; background: var(--rand); }
+
+    .abschnitt-sub {
+      font-size: 0.9rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-bottom: 1.4rem;
+    }
+
+    .karte {
+      background: var(--karte);
+      border: 1px solid var(--rand);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+    .karte:hover { border-color: var(--akzent); }
+
+    .karte-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--akzent);
+      margin-bottom: 0.4rem;
+    }
+
+    .cover {
+      width: 78px; height: 78px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: #444;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-fallback {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900; font-size: 1.1rem; color: white;
+    }
+
+    .karte-inhalt { flex: 1; min-width: 0; }
+    .karte-titel {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+    }
+    .karte-meta {
+      font-size: 0.82rem;
+      color: var(--akzent);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+    .karte-beschreibung {
+      font-size: 0.93rem;
+      color: var(--text-mittel);
+      line-height: 1.65;
+      margin-bottom: 0.75rem;
+    }
+
+    .karte-links { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    a.btn {
+      display: inline-block;
+      padding: 0.4rem 0.9rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+      font-family: 'Source Serif 4', Georgia, serif;
+    }
+    a.btn:hover { opacity: 0.75; }
+    a.btn.spotify { background: rgba(30,215,96,0.14); border: 1px solid rgba(30,215,96,0.35); color: var(--gruen); }
+    a.btn.youtube { background: rgba(255,85,85,0.12); border: 1px solid rgba(255,85,85,0.28); color: var(--rot); }
+    a.btn.original { background: rgba(90,169,255,0.12); border: 1px solid rgba(90,169,255,0.32); color: var(--blau); }
+
+    .hinweis { font-size: 0.78rem; color: var(--text-grau); font-style: italic; align-self: center; }
+
+    .paywall-hinweis {
+      font-size: 0.83rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-top: 0.6rem;
+      padding: 0.6rem 0.8rem;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid var(--akzent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    hr { border: none; border-top: 1px solid var(--rand); margin: 2.8rem 0; }
+
+    .inhalt {
+      background: var(--karte);
+      border: 1px solid var(--rand);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .inhalt-titel {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--akzent-hell);
+      margin-bottom: 0.7rem;
+    }
+    .inhalt ol { list-style: none; counter-reset: kat; padding: 0; }
+    .inhalt li {
+      counter-increment: kat;
+      padding: 0.25rem 0;
+      font-size: 0.92rem;
+    }
+    .inhalt li::before {
+      content: counter(kat) ". ";
+      color: var(--text-grau);
+      margin-right: 0.4rem;
+    }
+    .inhalt a {
+      color: var(--text-mittel);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .inhalt a:hover { color: var(--text); text-decoration: underline; }
+
+    .suche-zeile { margin-bottom: 1.5rem; }
+    .suche-feld {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: var(--karte);
+      border: 1px solid var(--rand);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .suche-feld:focus { outline: none; border-color: var(--akzent-hell); }
+    .suche-feld::placeholder { color: var(--text-grau); font-style: italic; }
+    .suche-leer-meldung {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-grau);
+      font-style: italic;
+    }
+    .suche-leer-meldung.aktiv { display: block; }
+
+    .kategorie { margin-bottom: 2.5rem; scroll-margin-top: 1rem; }
+    .kategorie.versteckt { display: none; }
+    .kategorie-titel {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--akzent-hell);
+      margin-bottom: 0.3rem;
+    }
+    .kategorie-beschreibung {
+      font-size: 0.85rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--rand);
+    }
+
+    .podcast-block {
+      margin-bottom: 1.4rem;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+    }
+    .podcast-block.versteckt { display: none; }
+    .mini-cover {
+      width: 52px; height: 52px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: #444;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mini-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mini-cover-fallback {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900; font-size: 0.75rem; color: white;
+    }
+
+    .podcast-inhalt { flex: 1; min-width: 0; }
+    .podcast-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+    .podcast-beschreibung {
+      font-size: 0.83rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-bottom: 0.6rem;
+      line-height: 1.5;
+    }
+
+    .folge {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      scroll-margin-top: 1rem;
+      position: relative;
+    }
+    .folge:last-child { border-bottom: none; }
+    .folge.versteckt { display: none; }
+    .folge-titel {
+      font-size: 0.92rem;
+      color: var(--text-mittel);
+      line-height: 1.4;
+      margin-bottom: 0.2rem;
+      padding-right: 1.8rem;
+    }
+    .folge-meta {
+      font-size: 0.75rem;
+      color: var(--text-grau);
+      font-style: italic;
+      margin-bottom: 0.4rem;
+    }
+    .folge-links {
+      display: flex; gap: 0.4rem;
+      flex-wrap: wrap; align-items: center;
+    }
+    a.btn-klein {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 3px;
+      font-size: 0.72rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    a.btn-klein:hover { opacity: 0.75; }
+    a.btn-klein.spotify { background: rgba(30,215,96,0.14); border: 1px solid rgba(30,215,96,0.35); color: var(--gruen); }
+    a.btn-klein.youtube { background: rgba(255,85,85,0.12); border: 1px solid rgba(255,85,85,0.28); color: var(--rot); }
+    a.btn-klein.original { background: rgba(90,169,255,0.12); border: 1px solid rgba(90,169,255,0.32); color: var(--blau); }
+
+    .offline-icon {
+      display: inline-block;
+      margin-left: 0.2rem;
+      font-size: 0.65rem;
+      opacity: 0.7;
+      cursor: help;
+    }
+
+    .teilen-btn {
+      position: absolute;
+      top: 0.4rem; right: 0;
+      background: none;
+      border: none;
+      color: var(--text-grau);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      transition: color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .teilen-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+    }
+    .teilen-btn.kopiert { color: var(--gruen); }
+
+    .bechdel-info {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .bechdel-info summary {
+      color: var(--text-mittel);
+      padding: 0.4rem 0;
+      list-style: none;
+      display: inline-block;
+      border-bottom: 1px dotted var(--text-grau);
+    }
+    .bechdel-info summary::-webkit-details-marker { display: none; }
+    .bechdel-info summary::before { content: '▸ '; color: var(--text-grau); }
+    .bechdel-info[open] summary::before { content: '▾ '; }
+    .bechdel-info p {
+      padding: 0.7rem 0.9rem;
+      margin-top: 0.5rem;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid var(--akzent);
+      border-radius: 0 4px 4px 0;
+      color: var(--text-grau);
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    .fuss {
+      text-align: center;
+      margin-top: 3.5rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid var(--rand);
+      color: var(--text-grau);
+      font-size: 0.85rem;
+    }
+    .fuss a { color: var(--akzent-hell); text-decoration: none; border-bottom: 1px dotted var(--akzent); }
+    .fuss a:hover { color: var(--text); }
+    .fuss-stand { font-style: italic; font-size: 0.78rem; margin-top: 0.8rem; color: var(--text-grau); }
+
+    @media (max-width: 480px) {
+      .seite { padding: 1.5rem 0.9rem 3rem; }
+      .cover { width: 64px; height: 64px; }
+      .mini-cover { width: 44px; height: 44px; }
+      .karte { padding: 1rem; gap: 0.8rem; }
+      .karte-titel { font-size: 0.98rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="fortschritt" id="fortschritt"></div>
+
+<div class="seite">
+
+  <header class="kopf">
+    <h1>RNH Podcast-Empfehlungen</h1>
+  </header>
+
+  <div class="einleitung">
+    Hey 👋<br><br>
+    Ich habe in den letzten 2 Jahren mehrere hundert Stunden Podcast gehört und stelle euch hier die besten Folgen vor, die mir in Erinnerung geblieben sind. Auch wenn ihr noch nie einen Podcast gehört habt – steigt einfach bei einer Folge ein, die euch anspricht. Die ganze Folgenliste findet ihr unten.
+  </div>
+
+  <h2 class="abschnitt">Meine Top-Empfehlungen</h2>
+  <p class="abschnitt-sub">Die fünf Folgen, mit denen ich beginnen würde – sortiert nach Einstieg und Anspruch.</p>
+
+  <!-- TOP 1: Talk ohne Gast – Einstieg -->
+  <div class="karte">
+    <div class="cover" id="cover-top1">
+      <img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/22/e1/38/22e13877-ac03-c828-6a30-b6601cf473d3/mza_2832792539965586858.png/600x600bf-60.jpg" alt="Talk ohne Gast" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">TG</span>
+    </div>
+    <div class="karte-inhalt">
+      <span class="karte-label">Für Einsteiger</span>
+      <div class="karte-titel">Ich wohn im Keller</div>
+      <div class="karte-meta">Talk ohne Gast · Till Reiners &amp; Moritz Neumeier</div>
+      <div class="karte-beschreibung">Wenn ihr noch nie einen Podcast gehört habt, fängt es hier vielleicht an. Ein seichter Einstieg in das, was Podcasts leisten können – und macht euch vielleicht neugierig auf das, was folgt. Zwei Comedians ohne Gäste, dafür mit viel Quatsch und überraschenden Tiefen.</div>
+      <div class="karte-links">
+        <a href="https://www.youtube.com/watch?v=nULTYXiMQBI" class="btn youtube" target="_blank">▶ YouTube</a>
+        <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn original" target="_blank">▶ ARD Audiothek</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP 2: Alles gesagt – Lage der Nation -->
+  <div class="karte">
+    <div class="cover" id="cover-top2">
+      <img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/93/48/bd/9348bd26-13b4-3c05-5ec0-9357353b4511/mza_14275433299560167497.jpg/600x600bf-60.jpg" alt="Alles gesagt?" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">AG</span>
+    </div>
+    <div class="karte-inhalt">
+      <span class="karte-label">Für Erfahrene – Horizonterweiterung</span>
+      <div class="karte-titel">„Lage der Nation" – Wie ist die Lage der Nation?</div>
+      <div class="karte-meta">Alles gesagt? · ZEIT · 7 Std. 35 Min.</div>
+      <div class="karte-beschreibung">Wenn ihr schon Podcasts gehört habt und euren Horizont erweitern wollt, empfehle ich Alles gesagt – und besonders diese Folge. Philip Banse und Ulf Buermeyer zu Gast beim ZEIT-Podcast. Ein tiefes Gespräch über Demokratie, Justiz und Podcast-Journalismus. Für mich die beste Folge der letzten zwei Jahre.</div>
+      <div class="karte-links">
+        <a href="https://www.youtube.com/watch?v=SVbuINNRU7g" class="btn youtube" target="_blank">▶ YouTube (kostenlos)</a>
+        <a href="https://open.spotify.com/episode/3eZmFua9h6iSZ1vN8CLLED" class="btn spotify" target="_blank">▶ Spotify (ZEIT-Abo)</a>
+        <a href="https://www.zeit.de/serie/alles-gesagt" class="btn original" target="_blank">▶ zeit.de</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP 3: Nur eine Frage – Heino Falcke -->
+  <div class="karte">
+    <div class="cover" id="cover-top3">
+      <img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/2d/a4/99/2da4999d-8c68-af63-121a-e1bdefce856c/mza_14528240508912338790.png/600x600bf-60.jpg" alt="Nur eine Frage" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">NF</span>
+    </div>
+    <div class="karte-inhalt">
+      <span class="karte-label">Sinnfragen & große Themen</span>
+      <div class="karte-titel">Gibt es Gott, Heino Falcke?</div>
+      <div class="karte-meta">Nur eine Frage · ZEIT · 1 Std. 12 Min.</div>
+      <div class="karte-beschreibung">Der Wissenschaftler, der das erste Schwarze-Loch-Foto aufgenommen hat, spricht über Glauben und Physik. Selten so klar gehört, wie Naturwissenschaft und Glaube zusammengedacht werden können.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/episode/4jnvEIBxcM1GkPAHJVNrST" class="btn spotify" target="_blank">▶ Spotify (ZEIT-Abo)</a>
+        <a href="https://www.zeit.de/serie/nur-eine-frage" class="btn original" target="_blank">▶ zeit.de</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP 4: Lage der Nation – Gaza -->
+  <div class="karte">
+    <div class="cover" id="cover-top4">
+      <img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/da/72/0b/da720b3e-9cb3-0239-fad9-0f80d5daff10/mza_7473842586054974690.png/600x600bf-60.jpg" alt="Lage der Nation" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">LN</span>
+    </div>
+    <div class="karte-inhalt">
+      <span class="karte-label">Politik</span>
+      <div class="karte-titel">Gaza – Lage der Nation</div>
+      <div class="karte-meta">Lage der Nation · Philip Banse &amp; Ulf Buermeyer</div>
+      <div class="karte-beschreibung">Eine eindringliche Folge zur humanitären und politischen Situation in Gaza. Sachlich, fundiert, einordnend.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/show/7a3LWj5xSFhFRYmztS8wgK" class="btn spotify" target="_blank">▶ Spotify</a>
+        <a href="https://lagedernation.org" class="btn original" target="_blank">▶ lagedernation.org</a>
+        <span class="hinweis">⚠ Konkrete Folge wird noch ergänzt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP 5: Schreiben & Schreddern -->
+  <div class="karte">
+    <div class="cover" id="cover-top5">
+      <img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/e3/48/0f/e3480f5d-561b-28a2-03d5-f6c26c4c0483/mza_7845236129991807367.png/600x600bf-60.jpg" alt="Schreiben &amp; Schreddern" onerror="this.style.display='none';this.parentElement.querySelector('.cover-fallback').style.display='flex'">
+      <span class="cover-fallback" style="display:none">SS</span>
+    </div>
+    <div class="karte-inhalt">
+      <span class="karte-label">Kultur & Kreatives</span>
+      <div class="karte-titel">Marc-Uwe Kling trifft Inka und Markus Brand</div>
+      <div class="karte-meta">Schreiben &amp; Schreddern · Marc-Uwe Kling</div>
+      <div class="karte-beschreibung">Marc-Uwe Kling im Gespräch mit den Spieleentwicklern Inka und Markus Brand – sie haben viele Brettspiele gemacht und auch „Die drei ???-Kids" mitentwickelt. Locker und voller Einsichten ins kreative Handwerk.</div>
+      <div class="karte-links">
+        <a href="https://open.spotify.com/search/Schreiben%20Schreddern%20Inka%20Markus%20Brand/episodes" class="btn spotify" target="_blank">▶ Spotify (Suche)</a>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- INHALTSVERZEICHNIS -->
+  <nav class="inhalt">
+    <div class="inhalt-titel">Die ganze Liste – 9 Kategorien</div>
+    <ol>
+      <li><a href="#kat-1">Sinnfragen & große Themen</a></li>
+      <li><a href="#kat-2">Politik & Aktuelles</a></li>
+      <li><a href="#kat-3">Horizonterweiterung & Recherche</a></li>
+      <li><a href="#kat-4">Geschichte</a></li>
+      <li><a href="#kat-5">Damit die Liste auch den Bechdel-Test besteht</a></li>
+      <li><a href="#kat-6">Gesellschaft & persönliche Geschichten</a></li>
+      <li><a href="#kat-7">Kultur & Kreatives</a></li>
+      <li><a href="#kat-8">Klug & locker – Satire mit Substanz</a></li>
+      <li><a href="#kat-9">Leichte Unterhaltung & Comedy</a></li>
+    </ol>
+  </nav>
+
+  <h2 class="abschnitt">Die ganze Liste</h2>
+  <p class="abschnitt-sub">31 Folgen, die mir im Kopf geblieben sind – sortiert in 9 Kategorien.</p>
+
+  <div class="suche-zeile">
+    <input type="text" id="suche" class="suche-feld" placeholder="🔍 Suche nach Folge, Podcast oder Stichwort …" autocomplete="off">
+  </div>
+
+  <div class="suche-leer-meldung" id="suche-leer">Keine passenden Folgen gefunden.</div>
+
+  <!-- KAT 1 -->
+  <div class="kategorie" id="kat-1">
+    <div class="kategorie-titel">1. Sinnfragen & große Themen</div>
+    <div class="kategorie-beschreibung">Existenzielle und philosophische Fragen. Ruhige Gespräche, die den Horizont weiten.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-nf"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/2d/a4/99/2da4999d-8c68-af63-121a-e1bdefce856c/mza_14528240508912338790.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">NF</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Nur eine Frage</div>
+        <div class="podcast-beschreibung">Eine Frage, ein langes Gespräch dazu. ZEIT-Podcast.</div>
+        <div class="folge" id="f-nf-falcke">
+          <button class="teilen-btn" data-anker="f-nf-falcke" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Gibt es Gott, Heino Falcke?</div>
+          <div class="folge-meta">1 Std. 12 Min.</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/4jnvEIBxcM1GkPAHJVNrST" class="btn-klein spotify" target="_blank">Spotify (ZEIT-Abo)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.zeit.de/serie/nur-eine-frage" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ob"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/0a/c6/53/0ac65311-3ff7-44f7-fd5e-652e84d34cf1/mza_10791381164333289979.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">OB</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">On Being</div>
+        <div class="podcast-beschreibung">Englischsprachiger Podcast von Krista Tippett – Gespräche über Sinn und Menschsein.</div>
+        <div class="folge" id="f-ob-iyer">
+          <button class="teilen-btn" data-anker="f-ob-iyer" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Pico Iyer – Ungeschnitten</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Pico%20Iyer%20On%20Being%20unedited/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)</a>
+            <a href="https://onbeing.org/series/podcast/" class="btn-klein original" target="_blank">onbeing.org</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 2 -->
+  <div class="kategorie" id="kat-2">
+    <div class="kategorie-titel">2. Politik & Aktuelles</div>
+    <div class="kategorie-beschreibung">Aktuelle politische Lage, fundiert, klare Haltung.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ln"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/da/72/0b/da720b3e-9cb3-0239-fad9-0f80d5daff10/mza_7473842586054974690.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">LN</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Lage der Nation</div>
+        <div class="podcast-beschreibung">Wöchentlicher Politik-Podcast von Philip Banse und Ulf Buermeyer – faktenreich, mit klarer Haltung.</div>
+        <div class="folge" id="f-ln-462">
+          <button class="teilen-btn" data-anker="f-ln-462" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">LdN462 – Trump will Grönland, Kanadas Premier, EU-Parlament</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/show/7a3LWj5xSFhFRYmztS8wgK" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://lagedernation.org/podcast/ldn462-trump-will-groenland-kanadas-premier-eu-parlament/" class="btn-klein original" target="_blank">lagedernation.org</a>
+          </div>
+        </div>
+        <div class="folge" id="f-ln-gaza">
+          <button class="teilen-btn" data-anker="f-ln-gaza" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Gaza – Lage der Nation</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/show/7a3LWj5xSFhFRYmztS8wgK" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://lagedernation.org" class="btn-klein original" target="_blank">lagedernation.org</a>
+            <span class="hinweis">⚠ Konkrete Folge wird noch ergänzt</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ma"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/00/47/0f/00470f8b-e064-77c7-a1f6-51598372180b/mza_15896350007861190179.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">MA</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">MARCANT</div>
+        <div class="podcast-beschreibung">Content Creator gegen Rechtsextremismus. Wöchentliche Gespräche mit bekannten und unbekannten Gästen.</div>
+        <div class="folge" id="f-ma-kuehnert">
+          <button class="teilen-btn" data-anker="f-ma-kuehnert" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Kevin Kühnert über Nazis, SPD und Erbschaftssteuer</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Kevin%20K%C3%BChnert%20MARCANT/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.youtube.com/@MarcantPodcast" class="btn-klein youtube" target="_blank">YouTube-Kanal</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 3 -->
+  <div class="kategorie" id="kat-3">
+    <div class="kategorie-titel">3. Horizonterweiterung & Recherche</div>
+    <div class="kategorie-beschreibung">Lange Interviews und Recherche zu Themen, die den Blick weiten.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ag"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/93/48/bd/9348bd26-13b4-3c05-5ec0-9357353b4511/mza_14275433299560167497.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">AG</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Alles gesagt? – Der unendliche Podcast</div>
+        <div class="podcast-beschreibung">ZEIT-Podcast von Christoph Amend und Jochen Wegner. Das Gespräch endet erst, wenn der Gast „alles gesagt" hat – meist nach mehreren Stunden.</div>
+        <div class="folge" id="f-ag-maurer">
+          <button class="teilen-btn" data-anker="f-ag-maurer" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Matthias Maurer – Wie lebt es sich im All? (Astronaut)</div>
+          <div class="folge-meta">9 Std. 46 Min.</div>
+          <div class="folge-links">
+            <a href="https://www.youtube.com/watch?v=Pcbv4bv0YEk" class="btn-klein youtube" target="_blank">YouTube (kostenlos)</a>
+            <a href="https://open.spotify.com/episode/3t0TymEnHKeNr9t36xL7jX" class="btn-klein spotify" target="_blank">Spotify (ZEIT-Abo)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.zeit.de/serie/alles-gesagt" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="folge" id="f-ag-rezo">
+          <button class="teilen-btn" data-anker="f-ag-rezo" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Rezo – Warum willst du Bundeskanzler sein?</div>
+          <div class="folge-meta">8 Std. 40 Min.</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/1LLFCiAtWiE3uCHnYSXXAf" class="btn-klein spotify" target="_blank">Spotify (ZEIT-Abo)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.zeit.de/serie/alles-gesagt" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="folge" id="f-ag-lage">
+          <button class="teilen-btn" data-anker="f-ag-lage" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">„Lage der Nation" – Wie ist die Lage der Nation?</div>
+          <div class="folge-meta">7 Std. 35 Min.</div>
+          <div class="folge-links">
+            <a href="https://www.youtube.com/watch?v=SVbuINNRU7g" class="btn-klein youtube" target="_blank">YouTube (kostenlos)</a>
+            <a href="https://open.spotify.com/episode/3eZmFua9h6iSZ1vN8CLLED" class="btn-klein spotify" target="_blank">Spotify (ZEIT-Abo)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.zeit.de/serie/alles-gesagt" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="folge" id="f-ag-socher">
+          <button class="teilen-btn" data-anker="f-ag-socher" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Richard Socher – Was denken Maschinen? (KI-Forscher)</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/1f7RKJry6PvilVhdKpTkcV" class="btn-klein spotify" target="_blank">Spotify (ZEIT-Abo)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.zeit.de/serie/alles-gesagt" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="paywall-hinweis">Diese Folgen sind bei ZEIT teils hinter einer Paywall. Wer's mag, für den lohnt sich das Abo (inkl. ZEIT digital). Kostenlose Alternative: YouTube.</div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-uf"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/7f/d9/f5/7fd9f5af-869a-dee5-b6ed-8440efe7cb86/mza_4312078372583108507.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">UF</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">UNFASSBAR – ein Simplicissimus Podcast</div>
+        <div class="podcast-beschreibung">Wöchentliche Storys aus Wirtschaft, Wissenschaft, Kultur und Politik – vom Team des YouTube-Kanals Simplicissimus.</div>
+        <div class="folge" id="f-uf-h2">
+          <button class="teilen-btn" data-anker="f-uf-h2" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Die Wahrheit über grünen Wasserstoff</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/UNFASSBAR%20gr%C3%BCner%20Wasserstoff%20Simplicissimus/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.youtube.com/@unfassbar" class="btn-klein youtube" target="_blank">YouTube-Kanal</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 4 -->
+  <div class="kategorie" id="kat-4">
+    <div class="kategorie-titel">4. Geschichte</div>
+    <div class="kategorie-beschreibung">Historische Themen, gut erzählt und eingeordnet.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-rg"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ec/3b/97/ec3b975f-79b0-88e8-6c09-d700c738c425/mza_13318776467750745098.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">RG</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Der Rest ist Geschichte</div>
+        <div class="podcast-beschreibung">Geschichts-Podcast der ZEIT – große historische Fragen, von Expertinnen und Experten verständlich erklärt.</div>
+        <div class="folge" id="f-rg-pazifismus">
+          <button class="teilen-btn" data-anker="f-rg-pazifismus" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Krieg und Frieden – Was nutzt Pazifismus?</div>
+          <div class="folge-links">
+            <a href="https://www.zeit.de/serie/der-rest-ist-geschichte" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="folge" id="f-rg-schweiz">
+          <button class="teilen-btn" data-anker="f-rg-schweiz" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Die Schweiz – Kampf um Neutralität</div>
+          <div class="folge-links">
+            <a href="https://www.zeit.de/serie/der-rest-ist-geschichte" class="btn-klein original" target="_blank">zeit.de</a>
+          </div>
+        </div>
+        <div class="paywall-hinweis">ZEIT-Podcast. Wer's mag, für den lohnt sich das Abo (inkl. ZEIT digital).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 5 -->
+  <div class="kategorie" id="kat-5">
+    <div class="kategorie-titel">5. Damit die Liste auch den Bechdel-Test besteht</div>
+    <div class="kategorie-beschreibung">
+      <details class="bechdel-info">
+        <summary>Was ist der Bechdel-Test?</summary>
+        <p>Der Bechdel-Test ist ein Maß für die Repräsentation von Frauen in Filmen, Büchern und anderen Medien. Ein Werk besteht den Test, wenn es mindestens zwei Frauen mit Namen gibt, die miteinander reden – und zwar über etwas anderes als einen Mann. Klingt banal, ist es aber nicht: Erstaunlich viele Werke fallen durch.</p>
+      </details>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-nd"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/c7/2f/44/c72f4484-6332-aac6-8003-863d9aab0781/mza_8545451067097219987.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">ND</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">NEU DENKEN</div>
+        <div class="podcast-beschreibung">Podcast von Mission Wertvoll, moderiert von Maja Göpel. Lösungsorientierte Gespräche zu Wachstum, Demokratie und Klimakrise.</div>
+        <div class="folge" id="f-nd-buecker">
+          <button class="teilen-btn" data-anker="f-nd-buecker" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Zeit NEU DENKEN – mit Teresa Bücker</div>
+          <div class="folge-meta">Oktober 2025</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/NEU%20DENKEN%20Teresa%20B%C3%BCcker%20Maja%20G%C3%B6pel/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.mission-wertvoll.org/neu-denken-podcast/" class="btn-klein original" target="_blank">mission-wertvoll.org</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 6 - Deutschland3000 nach oben! -->
+  <div class="kategorie" id="kat-6">
+    <div class="kategorie-titel">6. Gesellschaft & persönliche Geschichten</div>
+    <div class="kategorie-beschreibung">Menschen, ihre Geschichten, gesellschaftliche Themen aus persönlicher Perspektive.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-d3"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/88/2a/ff/882affb6-b264-de73-3053-3b4db578c78b/mza_18426088969369528303.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">D3</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Deutschland3000</div>
+        <div class="podcast-beschreibung">Eva Schulz interviewt Menschen mit besonderen Geschichten – politisch, persönlich, oft sehr berührend.</div>
+        <div class="folge" id="f-d3-hashemi">
+          <button class="teilen-btn" data-anker="f-d3-hashemi" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Said Etris Hashemi – Er überlebte den rechtsextremen Anschlag in Hanau 2020</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Deutschland3000%20Said%20Hashemi%20Hanau/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/deutschland3000/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-d3-ahrtal">
+          <button class="teilen-btn" data-anker="f-d3-ahrtal" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Ahrtal – Ein Jahr nach der Flut</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Deutschland3000%20Ahrtal%20Flut/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/deutschland3000/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-d3-kuehnert">
+          <button class="teilen-btn" data-anker="f-d3-kuehnert" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Phenix Kühnert – Wann ist eine Frau eine Frau?</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Deutschland3000%20Phenix%20K%C3%BChnert/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/deutschland3000/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-d3-simonetti">
+          <button class="teilen-btn" data-anker="f-d3-simonetti" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Riccardo Simonetti – Warum war berühmt werden der einzige Weg?</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Deutschland3000%20Riccardo%20Simonetti/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/deutschland3000/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-50"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/cd/dd/9f/cddd9f24-c7dd-716d-2bbe-1eb0c2e0a964/mza_10313595724175445635.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">50</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">50 Minuten</div>
+        <div class="podcast-beschreibung">Wissenschaftspodcast der Internationalen Psychoanalytischen Universität Berlin – psychoanalytische Perspektive auf gesellschaftliche Themen.</div>
+        <div class="folge" id="f-50-maennlich">
+          <button class="teilen-btn" data-anker="f-50-maennlich" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Männer und das System Männlichkeit</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/50%20Minuten%20M%C3%A4nner%20M%C3%A4nnlichkeit/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://50minuten.podigee.io/" class="btn-klein original" target="_blank">50minuten.podigee.io</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-dm"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ce/f0/21/cef02131-76e2-c3a8-9b87-4f187e633719/mza_17396890543773377969.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">DM</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Dark Matters – Geheimnisse der Geheimdienste</div>
+        <div class="podcast-beschreibung">ARD-Podcast mit Eva-Maria Lemke. Pro Folge ein wahrer Geheimdienst-Fall, erzählerisch im Spionagethriller-Stil.</div>
+        <div class="folge" id="f-dm-vs">
+          <button class="teilen-btn" data-anker="f-dm-vs" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Wie arbeitet der Verfassungsschutz?</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Dark%20Matters%20Verfassungsschutz/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/dark-matters-geheimnisse-der-geheimdienste/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-fi"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/df/87/e3/df87e3ca-cb1a-3862-de0e-47eb05bc6b37/mza_2512234563658804143.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">FI</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Finanztip</div>
+        <div class="podcast-beschreibung">Saidi Sulilatu erklärt Geld- und Wirtschaftsthemen sachlich und unabhängig.</div>
+        <div class="folge" id="f-fi-inflation">
+          <button class="teilen-btn" data-anker="f-fi-inflation" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Kommt die Inflation richtig zurück? (Folge 294)</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Finanztip%20Inflation%20Folge%20294/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.finanztip.de/podcast/" class="btn-klein original" target="_blank">finanztip.de</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ek"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/16/fd/d4/16fdd455-fc0a-eb5e-6484-26cfa5d6c023/mza_7570848922699900894.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">EK</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">In extremen Köpfen</div>
+        <div class="podcast-beschreibung">Oliver Schneider spricht mit Menschen aus extremen Berufen oder Lebenssituationen – lange, ruhige Gespräche.</div>
+        <div class="folge" id="f-ek-ksk">
+          <button class="teilen-btn" data-anker="f-ek-ksk" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Wie es ist, beim KSK zu dienen</div>
+          <div class="folge-meta">1 Std. 30 Min.</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/3RaGU7NMvnhpYvbJiLhZWI" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 7 -->
+  <div class="kategorie" id="kat-7">
+    <div class="kategorie-titel">7. Kultur & Kreatives</div>
+    <div class="kategorie-beschreibung">Bücher, Schreiben, kreative Berufe – locker erzählt.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ss"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/e3/48/0f/e3480f5d-561b-28a2-03d5-f6c26c4c0483/mza_7845236129991807367.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">SS</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Schreiben &amp; Schreddern</div>
+        <div class="podcast-beschreibung">Marc-Uwe Kling spricht mit anderen Schreibenden über ihren Beruf.</div>
+        <div class="folge" id="f-ss-fitzek">
+          <button class="teilen-btn" data-anker="f-ss-fitzek" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Marc-Uwe Kling trifft Sebastian Fitzek (Bestseller-Autor)</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Schreiben%20Schreddern%20Sebastian%20Fitzek/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+          </div>
+        </div>
+        <div class="folge" id="f-ss-brand">
+          <button class="teilen-btn" data-anker="f-ss-brand" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Marc-Uwe Kling trifft Inka und Markus Brand (Spieleentwickler, u.a. „Die drei ???-Kids")</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Schreiben%20Schreddern%20Inka%20Markus%20Brand/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 8 -->
+  <div class="kategorie" id="kat-8">
+    <div class="kategorie-titel">8. Klug & locker – Satire mit Substanz</div>
+    <div class="kategorie-beschreibung">Lustig und satirisch, aber faktenbasiert recherchiert.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ff"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/f4/ca/d1/f4cad154-321f-3dad-081a-56558df9190d/mza_9085666225172139327.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">FF</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Fun Facts.</div>
+        <div class="podcast-beschreibung">Faktenbasierte politische Satire, gestartet 2026. Mit-Initiator: Marc-Uwe Kling. Hosts wechseln täglich. Recherche in Kooperation mit CORRECTIV.</div>
+        <div class="folge" id="f-ff-gaza">
+          <button class="teilen-btn" data-anker="f-ff-gaza" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Wie zerstört Gaza wirklich ist (mit Abdul Kader Chahin)</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Fun%20Facts%20Gaza%20Abdul/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.funfacts.de/" class="btn-klein original" target="_blank">funfacts.de</a>
+          </div>
+        </div>
+        <div class="folge" id="f-ff-steuer">
+          <button class="teilen-btn" data-anker="f-ff-steuer" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Warum Deutschland Steuerhinterziehung nicht bekämpft</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Fun%20Facts%20Steuerhinterziehung/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.funfacts.de/" class="btn-klein original" target="_blank">funfacts.de</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAT 9 -->
+  <div class="kategorie" id="kat-9">
+    <div class="kategorie-titel">9. Leichte Unterhaltung & Comedy</div>
+    <div class="kategorie-beschreibung">Auch zum Nebenbei-Hören – beim Bügeln, Spazierengehen oder Einschlafen. Talk ohne Gast steht oben, weil das ein guter Einstieg für Podcast-Anfänger ist.</div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-tog"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/22/e1/38/22e13877-ac03-c828-6a30-b6601cf473d3/mza_2832792539965586858.png/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">TG</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Talk ohne Gast</div>
+        <div class="podcast-beschreibung">Till Reiners und Moritz Neumeier – Comedy-Podcast ohne Gäste, aber mit viel Quatsch und überraschenden Tiefen.</div>
+        <div class="folge" id="f-tog-baemcakes">
+          <button class="teilen-btn" data-anker="f-tog-baemcakes" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Bämcakes</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/47wEeOYAVfMwpsEjibbhMD" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-tog-keller">
+          <button class="teilen-btn" data-anker="f-tog-keller" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Ich wohn im Keller</div>
+          <div class="folge-links">
+            <a href="https://www.youtube.com/watch?v=nULTYXiMQBI" class="btn-klein youtube" target="_blank">YouTube</a>
+            <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-tog-spielereien">
+          <button class="teilen-btn" data-anker="f-tog-spielereien" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Kein Ort für Spielereien</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/7yv4KxhZMhxUB81s00giSh" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-tog-gas">
+          <button class="teilen-btn" data-anker="f-tog-gas" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Gasthermen-Mann</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/5XxfGmyEsGWQpfxZ095sJm" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+        <div class="folge" id="f-tog-schirmherr">
+          <button class="teilen-btn" data-anker="f-tog-schirmherr" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Schirmherr Reiners</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/episode/7txYNQOj6v7dCKDlf6fmyy" class="btn-klein spotify" target="_blank">Spotify<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+            <a href="https://www.ardaudiothek.de/sendung/talk-ohne-gast/" class="btn-klein original" target="_blank">ARD Audiothek</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-gf"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/78/1c/fc781ca9-7370-9c8d-adcd-4a17a0735a6e/mza_17704188870572262343.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">GF</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Gefühlte Fakten</div>
+        <div class="podcast-beschreibung">Comedy-Podcast – absurde Alltagsbeobachtungen.</div>
+        <div class="folge" id="f-gf-frau">
+          <button class="teilen-btn" data-anker="f-gf-frau" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Ich ruf meine Frau an</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Gef%C3%BChlte%20Fakten%20Ich%20ruf%20meine%20Frau%20an/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="podcast-block">
+      <div class="mini-cover" id="mc-ba"><img src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/59/4a/d6/594ad6bd-01c0-d1f1-b441-793c28ef1b1e/mza_13247939372835469302.jpg/300x300bf-60.jpg" onerror="this.style.display='none';this.parentElement.querySelector('.mini-cover-fallback').style.display='flex'"><span class="mini-cover-fallback" style="display:none">BA</span></div>
+      <div class="podcast-inhalt">
+        <div class="podcast-name">Bin ich das Arschloch?</div>
+        <div class="podcast-beschreibung">Tommi Schmitt beantwortet zugeschickte Beziehungs- und Alltagsfragen – mit Humor und Klugheit.</div>
+        <div class="folge" id="f-ba-25">
+          <button class="teilen-btn" data-anker="f-ba-25" title="Link zu dieser Folge kopieren">🔗</button>
+          <div class="folge-titel">Folge 25 – Lieber masturbieren als mit Freundin schlafen?</div>
+          <div class="folge-links">
+            <a href="https://open.spotify.com/search/Bin%20ich%20das%20Arschloch%20Tommi%20Schmitt%20Folge%2025/episodes" class="btn-klein spotify" target="_blank">Spotify (Suche)<span class="offline-icon" title="Mit Spotify Premium offline hörbar">⬇</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fuss">
+    Feedback, Empfehlungen, Fragen?<br>
+    <a href="mailto:bluetenzart@gmx.de">bluetenzart@gmx.de</a>
+    <div class="fuss-stand">Stand: Mai 2026</div>
+  </div>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrollHoehe = h.scrollHeight - h.clientHeight;
+  const fortschritt = scrollHoehe > 0 ? (h.scrollTop / scrollHoehe) * 100 : 0;
+  document.getElementById('fortschritt').style.width = fortschritt + '%';
+});
+
+const sucheFeld = document.getElementById('suche');
+const sucheLeer = document.getElementById('suche-leer');
+const folgen = document.querySelectorAll('.folge');
+const podcastBlocks = document.querySelectorAll('.podcast-block');
+const kategorien = document.querySelectorAll('.kategorie');
+
+sucheFeld.addEventListener('input', (e) => {
+  const begriff = e.target.value.trim().toLowerCase();
+  let treffer = 0;
+  folgen.forEach(folge => {
+    const text = folge.textContent.toLowerCase();
+    const block = folge.closest('.podcast-block');
+    const blockText = block.querySelector('.podcast-name').textContent.toLowerCase()
+                    + ' ' + block.querySelector('.podcast-beschreibung').textContent.toLowerCase();
+    if (begriff === '' || text.includes(begriff) || blockText.includes(begriff)) {
+      folge.classList.remove('versteckt'); treffer++;
+    } else {
+      folge.classList.add('versteckt');
+    }
+  });
+  podcastBlocks.forEach(block => {
+    const sichtbar = block.querySelectorAll('.folge:not(.versteckt)');
+    if (sichtbar.length === 0) block.classList.add('versteckt');
+    else block.classList.remove('versteckt');
+  });
+  kategorien.forEach(kat => {
+    const sichtbar = kat.querySelectorAll('.podcast-block:not(.versteckt)');
+    if (sichtbar.length === 0) kat.classList.add('versteckt');
+    else kat.classList.remove('versteckt');
+  });
+  if (begriff !== '' && treffer === 0) sucheLeer.classList.add('aktiv');
+  else sucheLeer.classList.remove('aktiv');
+});
+
+document.querySelectorAll('.teilen-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const ankerId = btn.dataset.anker;
+    const url = window.location.origin + window.location.pathname + '#' + ankerId;
+    try {
+      await navigator.clipboard.writeText(url);
+      const original = btn.textContent;
+      btn.textContent = '✓';
+      btn.classList.add('kopiert');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('kopiert');
+      }, 1500);
+    } catch (err) {
+      prompt('Link zur Folge:', url);
+    }
+  });
+});
+
+// Alle 18 Podcast-Cover sind jetzt direkt im HTML hardcoded (5 Top-Cover
+// + 13 Mini-Cover). Keine API-Aufrufe mehr nötig - daher leere Liste.
+const podcasts = [];
+
+function setzeCovers(url, grossIds, kleinIds) {
+  [...grossIds, ...kleinIds].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const img = el.querySelector('img');
+    if (img) img.src = url;
+  });
+}
+
+async function ladeCover(p) {
+  const apiUrl = `https://itunes.apple.com/lookup?id=${p.id}&entity=podcast&limit=1`;
+  // Versuch 1: Direkt (funktioniert bei den meisten Browsern)
+  try {
+    const r = await fetch(apiUrl);
+    const d = await r.json();
+    if (d.results && d.results[0] && d.results[0].artworkUrl600) {
+      setzeCovers(d.results[0].artworkUrl600, p.gross, p.klein);
+      return;
+    }
+  } catch(e) {}
+  // Versuch 2: Über CORS-Proxy (Fallback wenn Browser den direkten Zugriff blockt)
+  try {
+    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(apiUrl));
+    const d = await r.json();
+    if (d.results && d.results[0] && d.results[0].artworkUrl600) {
+      setzeCovers(d.results[0].artworkUrl600, p.gross, p.klein);
+    }
+  } catch(e) {}
+}
+
+podcasts.forEach(p => ladeCover(p));
+</script>
+</body>
+</html>
