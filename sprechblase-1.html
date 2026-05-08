@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0e10">
+<title>Sprechblase</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #0e0e10;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #f5f1e8;
+    min-height: 100vh;
+    padding: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .karte {
+    max-width: 540px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #1a1a1f 0%, #141418 100%);
+    border: 1px solid #2a2a32;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* === EINGABE-MODUS === */
+  .eingabe-bereich { padding: 22px 24px 18px; }
+  .eingabe-titel {
+    font-size: 18px;
+    color: #d4a857;
+    margin-bottom: 4px;
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+  .eingabe-hinweis {
+    font-size: 14px;
+    color: #8a847a;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  textarea.eingabe-feld {
+    width: 100%;
+    min-height: 180px;
+    background: #0e0e10;
+    border: 1px solid #2a2a32;
+    border-radius: 10px;
+    padding: 14px;
+    color: #e8e3d6;
+    font-family: 'Georgia', serif;
+    font-size: 17px;
+    line-height: 1.5;
+    resize: vertical;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  textarea.eingabe-feld:focus {
+    outline: none;
+    border-color: #d4a857;
+  }
+  textarea.eingabe-feld::placeholder {
+    color: #5a544a;
+    font-style: italic;
+  }
+  .eingabe-knoepfe {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid #2a2a32;
+  }
+  .eingabe-knopf {
+    padding: 22px 16px;
+    background: transparent;
+    border: none;
+    color: #f5f1e8;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: rgba(212, 168, 87, 0.3);
+    min-height: 80px;
+    touch-action: manipulation;
+  }
+  .eingabe-knopf + .eingabe-knopf { border-left: 1px solid #2a2a32; }
+  .eingabe-knopf svg {
+    width: 28px;
+    height: 28px;
+    stroke: #d4a857;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .eingabe-knopf span { pointer-events: none; }
+  .eingabe-knopf:active { background: rgba(212, 168, 87, 0.20); }
+  .eingabe-knopf:hover { background: rgba(212, 168, 87, 0.06); }
+  .eingabe-knopf.haupt svg { stroke: #7ec47e; }
+  .eingabe-knopf.haupt { color: #7ec47e; }
+  .eingabe-knopf:disabled { opacity: 0.35; cursor: not-allowed; }
+  .eingabe-knopf:disabled:active { background: transparent; }
+
+  /* === WIEDERGABE-MODUS === */
+  .text-bereich {
+    padding: 26px 24px 18px;
+    font-size: 19px;
+    line-height: 1.6;
+    color: #e8e3d6;
+    border-bottom: 1px solid #2a2a32;
+    letter-spacing: 0.01em;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .punkt {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  .punkt:last-child { margin-bottom: 0; }
+  .punkt.aktiv {
+    background: rgba(212, 168, 87, 0.10);
+    border-left-color: #d4a857;
+  }
+  .position {
+    padding: 12px 24px;
+    font-size: 15px;
+    color: #d4a857;
+    background: #18181d;
+    border-bottom: 1px solid #2a2a32;
+    font-style: italic;
+    text-align: center;
+    letter-spacing: 0.02em;
+    min-height: 42px;
+  }
+  .position.ende { color: #7ec47e; }
+  .position.fehler { color: #e57373; font-style: normal; }
+  .audio-leiste {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid #2a2a32;
+  }
+  .knopf {
+    padding: 22px 12px;
+    background: transparent;
+    border: none;
+    color: #f5f1e8;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: rgba(212, 168, 87, 0.3);
+    min-height: 100px;
+    touch-action: manipulation;
+  }
+  .knopf + .knopf { border-left: 1px solid #2a2a32; }
+  .knopf:active { background: rgba(212, 168, 87, 0.20); }
+  .knopf:hover { background: rgba(212, 168, 87, 0.06); }
+  .knopf:disabled { opacity: 0.35; cursor: not-allowed; }
+  .knopf:disabled:active { background: transparent; }
+  .knopf svg {
+    width: 38px;
+    height: 38px;
+    fill: #d4a857;
+    pointer-events: none;
+  }
+  .knopf.haupt svg { width: 52px; height: 52px; }
+  .label {
+    font-size: 14px;
+    color: #c8c2b3;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+  }
+  .knopf.haupt.spielt svg { fill: #e57373; }
+  .knopf.haupt.spielt .label { color: #e57373; }
+
+  .knopf-breit {
+    width: 100%;
+    padding: 18px 16px;
+    background: transparent;
+    border: none;
+    color: #c8c2b3;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: rgba(212, 168, 87, 0.3);
+    min-height: 64px;
+    touch-action: manipulation;
+  }
+  .knopf-breit svg {
+    width: 22px;
+    height: 22px;
+    stroke: #8a847a;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .knopf-breit span { pointer-events: none; }
+  .knopf-breit:active { background: rgba(212, 168, 87, 0.20); }
+
+  .ausgeblendet { display: none !important; }
+
+  @media (max-width: 380px) {
+    .text-bereich { padding: 22px 18px 14px; font-size: 18px; }
+    .punkt { padding: 10px 12px; }
+    .knopf { min-height: 88px; padding: 18px 8px; }
+    .knopf svg { width: 32px; height: 32px; }
+    .knopf.haupt svg { width: 44px; height: 44px; }
+    .eingabe-bereich { padding: 18px 18px 14px; }
+    textarea.eingabe-feld { font-size: 16px; min-height: 150px; }
+    .eingabe-knopf { min-height: 70px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="karte">
+
+  <!-- EINGABE-MODUS -->
+  <div id="eingabe-modus">
+    <div class="eingabe-bereich">
+      <div class="eingabe-titel">Sprechblase</div>
+      <div class="eingabe-hinweis">Antwort einfuegen, dann auf Vorlesen tippen</div>
+      <textarea id="eingabe-feld" class="eingabe-feld" placeholder="Hier Text einfuegen ..." autofocus></textarea>
+    </div>
+    <div class="eingabe-knoepfe">
+      <button id="einfuegen-knopf" class="eingabe-knopf" type="button">
+        <svg viewBox="0 0 24 24"><rect x="8" y="3" width="13" height="13" rx="2"></rect><path d="M5 7v12a2 2 0 0 0 2 2h10"></path></svg>
+        <span>Einfuegen</span>
+      </button>
+      <button id="vorlesen-start-knopf" class="eingabe-knopf haupt" type="button" disabled>
+        <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="#7ec47e" stroke="none"></polygon></svg>
+        <span>Vorlesen</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- WIEDERGABE-MODUS -->
+  <div id="wiedergabe-modus" class="ausgeblendet">
+    <div class="text-bereich" id="text"></div>
+    <div class="position" id="position">Punkt 1 von 1</div>
+    <div class="audio-leiste">
+      <button class="knopf" id="zurueck-knopf" type="button" aria-label="Vorheriger Punkt">
+        <svg viewBox="0 0 24 24"><polygon points="5,4 5,20 7,20 7,4"></polygon><polygon points="20,4 9,12 20,20"></polygon></svg>
+        <span class="label">Zurueck</span>
+      </button>
+      <button class="knopf haupt" id="play-knopf" type="button" aria-label="Abspielen oder pausieren">
+        <svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        <span class="label" id="play-label">Vorlesen</span>
+      </button>
+      <button class="knopf" id="vor-knopf" type="button" aria-label="Naechster Punkt">
+        <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"></polygon><polygon points="17,4 17,20 19,20 19,4"></polygon></svg>
+        <span class="label">Weiter</span>
+      </button>
+    </div>
+    <button class="knopf-breit" id="neu-knopf" type="button">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 4 3 10 9 10"></polyline></svg>
+      <span>Neuer Text</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var punkte = [];
+  var aktuellerIndex = 0;
+  var zustand = 'gestoppt';
+  var stimme = null;
+  var aktuelleAeusserung = null;
+  var statusTimer = null;
+
+  // === HILFSFUNKTIONEN ===
+
+  function statusZeigen(text, typ) {
+    var p = document.getElementById('position');
+    if (!p) return;
+    p.textContent = text;
+    p.classList.remove('ende', 'fehler');
+    if (typ === 'fehler') p.classList.add('fehler');
+    if (typ === 'ende') p.classList.add('ende');
+    if (typ === 'kurz') {
+      if (statusTimer) clearTimeout(statusTimer);
+      statusTimer = setTimeout(positionAnzeigen, 1500);
+    }
+  }
+
+  function stimmeWaehlen() {
+    if (typeof speechSynthesis === 'undefined') return;
+    var stimmen = window.speechSynthesis.getVoices();
+    stimme = stimmen.find(function(s) { return s.lang === 'de-DE'; })
+          || stimmen.find(function(s) { return s.lang && s.lang.indexOf('de') === 0; })
+          || stimmen[0];
+  }
+
+  // === TEXT IN PUNKTE AUFTEILEN ===
+
+  function textInPunkteTeilen(text) {
+    if (!text || !text.trim()) return [];
+
+    // Markdown-Zeichen entfernen, die nicht vorgelesen werden sollen
+    text = text.replace(/^#{1,6}\s+/gm, '');         // Ueberschriften-Marker
+    text = text.replace(/\*\*(.+?)\*\*/g, '$1');     // Fettdruck
+    text = text.replace(/\*(.+?)\*/g, '$1');         // Kursiv
+    text = text.replace(/`(.+?)`/g, '$1');           // Inline-Code
+    text = text.replace(/^\s*---+\s*$/gm, '');       // Trennlinien
+
+    // In Absaetze teilen: doppelter Zeilenumbruch
+    var rohe = text.split(/\n\s*\n/);
+
+    // Leere wegfiltern, trimmen
+    var ergebnis = [];
+    rohe.forEach(function(absatz) {
+      var bereinigt = absatz.replace(/\n+/g, ' ').trim();
+      if (bereinigt.length > 0) {
+        ergebnis.push(bereinigt);
+      }
+    });
+
+    return ergebnis;
+  }
+
+  // === MODUS-WECHSEL ===
+
+  function zuWiedergabeWechseln(text) {
+    var absaetze = textInPunkteTeilen(text);
+    if (absaetze.length === 0) return false;
+
+    var textBereich = document.getElementById('text');
+    textBereich.innerHTML = '';
+    absaetze.forEach(function(absatz) {
+      var p = document.createElement('p');
+      p.className = 'punkt';
+      p.textContent = absatz;
+      textBereich.appendChild(p);
+    });
+
+    punkte = Array.prototype.slice.call(textBereich.querySelectorAll('.punkt'));
+    aktuellerIndex = 0;
+    zustand = 'gestoppt';
+
+    document.getElementById('eingabe-modus').classList.add('ausgeblendet');
+    document.getElementById('wiedergabe-modus').classList.remove('ausgeblendet');
+
+    positionAnzeigen();
+    aktivenPunktMarkieren();
+    knoepfeAktualisieren();
+    return true;
+  }
+
+  function zuEingabeWechseln() {
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    zustand = 'gestoppt';
+    document.getElementById('wiedergabe-modus').classList.add('ausgeblendet');
+    document.getElementById('eingabe-modus').classList.remove('ausgeblendet');
+    var feld = document.getElementById('eingabe-feld');
+    feld.value = '';
+    feld.focus();
+    pruefeStartKnopf();
+  }
+
+  // === WIEDERGABE-LOGIK ===
+
+  function positionAnzeigen() {
+    var p = document.getElementById('position');
+    if (!p) return;
+    if (zustand === 'gestoppt' && aktuellerIndex >= punkte.length) {
+      p.textContent = 'Fertig';
+      p.classList.add('ende');
+      p.classList.remove('fehler');
+    } else {
+      p.textContent = 'Punkt ' + (aktuellerIndex + 1) + ' von ' + punkte.length;
+      p.classList.remove('ende', 'fehler');
+    }
+  }
+
+  function aktivenPunktMarkieren() {
+    punkte.forEach(function(p, i) {
+      if (i === aktuellerIndex && aktuellerIndex < punkte.length) {
+        p.classList.add('aktiv');
+      } else {
+        p.classList.remove('aktiv');
+      }
+    });
+    if (punkte[aktuellerIndex]) {
+      try { punkte[aktuellerIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    }
+  }
+
+  function knoepfeAktualisieren() {
+    var z = document.getElementById('zurueck-knopf');
+    var v = document.getElementById('vor-knopf');
+    if (z) z.disabled = aktuellerIndex <= 0;
+    if (v) v.disabled = aktuellerIndex >= punkte.length - 1;
+
+    var knopf = document.getElementById('play-knopf');
+    var label = document.getElementById('play-label');
+    var icon = document.getElementById('play-icon');
+    if (!knopf || !label || !icon) return;
+
+    if (zustand === 'spielt') {
+      knopf.classList.add('spielt');
+      label.textContent = 'Pause';
+      icon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>';
+    } else {
+      knopf.classList.remove('spielt');
+      label.textContent = zustand === 'pausiert' ? 'Weiter' : 'Vorlesen';
+      icon.innerHTML = '<polygon points="6,4 20,12 6,20"></polygon>';
+    }
+  }
+
+  function punktVorlesen(index) {
+    if (typeof speechSynthesis === 'undefined') {
+      statusZeigen('Vorlesen vom Browser nicht unterstuetzt', 'fehler');
+      return;
+    }
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+
+    if (index < 0 || index >= punkte.length) {
+      zustand = 'gestoppt';
+      aktuellerIndex = punkte.length;
+      positionAnzeigen();
+      knoepfeAktualisieren();
+      return;
+    }
+
+    aktuellerIndex = index;
+    aktivenPunktMarkieren();
+    positionAnzeigen();
+
+    if (!stimme) stimmeWaehlen();
+
+    var text = punkte[index].innerText || punkte[index].textContent;
+    aktuelleAeusserung = new SpeechSynthesisUtterance(text);
+    if (stimme) aktuelleAeusserung.voice = stimme;
+    aktuelleAeusserung.lang = 'de-DE';
+    aktuelleAeusserung.rate = 1.0;
+
+    aktuelleAeusserung.onstart = function() {
+      zustand = 'spielt';
+      knoepfeAktualisieren();
+    };
+
+    aktuelleAeusserung.onend = function() {
+      if (zustand === 'pausiert') return;
+      if (aktuellerIndex < punkte.length - 1) {
+        punktVorlesen(aktuellerIndex + 1);
+      } else {
+        zustand = 'gestoppt';
+        aktuellerIndex = punkte.length;
+        positionAnzeigen();
+        aktivenPunktMarkieren();
+        knoepfeAktualisieren();
+        setTimeout(function() {
+          aktuellerIndex = 0;
+          aktivenPunktMarkieren();
+          positionAnzeigen();
+          knoepfeAktualisieren();
+        }, 1500);
+      }
+    };
+
+    aktuelleAeusserung.onerror = function(e) {
+      zustand = 'gestoppt';
+      knoepfeAktualisieren();
+      statusZeigen('Vorlese-Fehler: ' + (e.error || 'unbekannt'), 'fehler');
+    };
+
+    try {
+      window.speechSynthesis.speak(aktuelleAeusserung);
+    } catch (e) {
+      statusZeigen('Sprachausgabe blockiert', 'fehler');
+    }
+  }
+
+  function playPause() {
+    if (typeof speechSynthesis === 'undefined') {
+      statusZeigen('Vorlesen nicht verfuegbar', 'fehler');
+      return;
+    }
+    if (zustand === 'spielt') {
+      try { window.speechSynthesis.pause(); } catch (e) {}
+      setTimeout(function() {
+        if (window.speechSynthesis.paused) {
+          zustand = 'pausiert';
+        } else {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+          zustand = 'pausiert';
+        }
+        knoepfeAktualisieren();
+      }, 100);
+    } else if (zustand === 'pausiert') {
+      try { window.speechSynthesis.resume(); } catch (e) {}
+      setTimeout(function() {
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+          zustand = 'spielt';
+          knoepfeAktualisieren();
+        } else {
+          punktVorlesen(aktuellerIndex);
+        }
+      }, 100);
+    } else {
+      if (aktuellerIndex >= punkte.length) aktuellerIndex = 0;
+      punktVorlesen(aktuellerIndex);
+    }
+  }
+
+  function naechster() {
+    statusZeigen('Weiter', 'kurz');
+    var ziel = aktuellerIndex + 1;
+    if (ziel >= punkte.length) return;
+    punktVorlesen(ziel);
+  }
+
+  function vorheriger() {
+    statusZeigen('Zurueck', 'kurz');
+    var ziel = aktuellerIndex - 1;
+    if (ziel < 0) return;
+    punktVorlesen(ziel);
+  }
+
+  // === EINGABE-LOGIK ===
+
+  function pruefeStartKnopf() {
+    var feld = document.getElementById('eingabe-feld');
+    var knopf = document.getElementById('vorlesen-start-knopf');
+    if (feld && knopf) {
+      knopf.disabled = !feld.value.trim();
+    }
+  }
+
+  function ausZwischenablageEinfuegen() {
+    var feld = document.getElementById('eingabe-feld');
+    if (!feld) return;
+
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function(text) {
+        feld.value = text;
+        pruefeStartKnopf();
+        // Wenn Text da ist: direkt starten
+        if (text && text.trim()) {
+          setTimeout(function() { vorleseStart(); }, 100);
+        }
+      }).catch(function() {
+        // Berechtigung verweigert oder nicht verfuegbar - manueller Hinweis
+        feld.focus();
+        alert('Bitte Text manuell ins Feld einfuegen (lange druecken, Einfuegen).');
+      });
+    } else {
+      feld.focus();
+      alert('Bitte Text manuell ins Feld einfuegen (lange druecken, Einfuegen).');
+    }
+  }
+
+  function vorleseStart() {
+    var feld = document.getElementById('eingabe-feld');
+    if (!feld) return;
+    var text = feld.value.trim();
+    if (!text) {
+      feld.focus();
+      return;
+    }
+    var ok = zuWiedergabeWechseln(text);
+    if (ok) {
+      // Direkt mit Vorlesen beginnen
+      setTimeout(function() { punktVorlesen(0); }, 200);
+    }
+  }
+
+  // === INITIALISIERUNG ===
+
+  function init() {
+    // Eingabe-Modus
+    var feld = document.getElementById('eingabe-feld');
+    var einfuegenKnopf = document.getElementById('einfuegen-knopf');
+    var startKnopf = document.getElementById('vorlesen-start-knopf');
+
+    if (feld) feld.addEventListener('input', pruefeStartKnopf);
+    if (einfuegenKnopf) einfuegenKnopf.addEventListener('click', ausZwischenablageEinfuegen);
+    if (startKnopf) startKnopf.addEventListener('click', vorleseStart);
+
+    // Wiedergabe-Modus
+    var z = document.getElementById('zurueck-knopf');
+    var p = document.getElementById('play-knopf');
+    var v = document.getElementById('vor-knopf');
+    var n = document.getElementById('neu-knopf');
+
+    if (z) z.addEventListener('click', vorheriger);
+    if (p) p.addEventListener('click', playPause);
+    if (v) v.addEventListener('click', naechster);
+    if (n) n.addEventListener('click', zuEingabeWechseln);
+
+    if (typeof speechSynthesis !== 'undefined') {
+      try {
+        speechSynthesis.onvoiceschanged = stimmeWaehlen;
+        stimmeWaehlen();
+      } catch (e) {}
+    }
+
+    pruefeStartKnopf();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
