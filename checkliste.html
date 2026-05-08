@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkliste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F3EC;
+    --bg-soft: #FBF8F2;
+    --card: #FFFFFF;
+    --ink: #2E342F;
+    --ink-soft: #5A645C;
+    --ink-mute: #8C9690;
+    --accent: #6B8E7A;
+    --accent-deep: #4F7060;
+    --accent-soft: #DCE8DF;
+    --warm: #E8B796;
+    --warm-soft: #F6E4D2;
+    --line: #E5DED2;
+    --shadow: 0 1px 2px rgba(46, 52, 47, 0.04), 0 8px 24px rgba(46, 52, 47, 0.06);
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 10% 0%, rgba(220, 232, 223, 0.5), transparent 40%),
+      radial-gradient(circle at 90% 100%, rgba(246, 228, 210, 0.4), transparent 40%),
+      var(--bg);
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  header { margin-bottom: 32px; }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(34px, 6vw, 46px);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .subtitle { color: var(--ink-soft); font-size: 16px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+
+  button {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink);
+    transition: all 0.15s ease;
+  }
+
+  .btn {
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent-deep); transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); color: white; }
+
+  .progress-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-text { flex-shrink: 0; font-weight: 600; color: var(--ink); font-size: 17px; }
+  .progress-bar { flex-grow: 1; height: 10px; background: var(--accent-soft); border-radius: 999px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .list { display: flex; flex-direction: column; gap: 14px; }
+
+  .node-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .node-card.done { background: var(--bg-soft); }
+
+  .children { display: flex; flex-direction: column; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
+  }
+
+  .level-0 .row { padding: 18px 20px; }
+  .level-1 { margin: 0 12px 0 44px; }
+  .level-1 .row:hover { background: var(--bg-soft); }
+  .level-2 { margin: 0 12px 0 36px; }
+  .level-2 .row:hover { background: var(--bg-soft); }
+
+  .check {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 2px solid var(--ink-mute);
+    background: white;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+
+  .level-1 .check { width: 24px; height: 24px; border-radius: 6px; }
+  .level-2 .check { width: 22px; height: 22px; border-radius: 6px; }
+
+  .check:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .check.checked { background: var(--accent); border-color: var(--accent); }
+  .check.checked svg { opacity: 1; transform: scale(1); }
+
+  .check svg {
+    width: 18px;
+    height: 18px;
+    color: white;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.18s ease;
+  }
+
+  .level-1 .check svg, .level-2 .check svg { width: 14px; height: 14px; }
+
+  .text {
+    flex-grow: 1;
+    font-size: 19px;
+    color: var(--ink);
+    cursor: text;
+    padding: 4px 0;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .level-0 .text {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+
+  .level-1 .text { font-size: 17px; }
+  .level-2 .text { font-size: 16px; color: var(--ink-soft); }
+
+  .row.done .text { color: var(--ink-mute); text-decoration: line-through; }
+
+  .text-edit {
+    flex-grow: 1;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    color: var(--ink);
+    background: var(--bg-soft);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 6px 10px;
+    outline: none;
+  }
+
+  .actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-mute);
+    display: grid;
+    place-items: center;
+    transition: all 0.15s ease;
+  }
+
+  .icon-btn:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent-deep); }
+  .icon-btn.danger:hover:not(:disabled) { background: var(--warm-soft); color: #B5704A; }
+  .icon-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .add-child-btn {
+    margin: 4px 12px 12px 44px;
+    padding: 8px 12px;
+    color: var(--ink-mute);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+  }
+
+  .level-1 > .children > .add-child-btn { margin-left: 36px; }
+  .add-child-btn:hover { background: var(--accent-soft); color: var(--accent-deep); }
+
+  .add-main-card {
+    margin-top: 16px;
+    width: 100%;
+    background: var(--card);
+    border: 2px dashed var(--accent);
+    color: var(--accent-deep);
+    padding: 20px;
+    border-radius: var(--radius);
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.18s ease;
+    font-family: 'Nunito', sans-serif;
+    min-height: 60px;
+  }
+
+  .add-main-card:hover { background: var(--accent-soft); transform: translateY(-1px); }
+  .add-main-card svg { width: 22px; height: 22px; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--ink-mute); }
+  .empty p { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 8px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .footer-note { margin-top: 40px; text-align: center; color: var(--ink-mute); font-size: 14px; }
+
+  @media (max-width: 540px) {
+    .wrap { padding: 24px 14px 60px; }
+    .row { gap: 8px; padding: 12px 12px; }
+    .level-0 .row { padding: 14px 14px; }
+    .level-1 { margin-left: 28px; margin-right: 8px; }
+    .level-2 { margin-left: 24px; margin-right: 8px; }
+    .add-child-btn { margin-left: 28px; }
+    .level-1 > .children > .add-child-btn { margin-left: 24px; }
+    .text { font-size: 17px; }
+    .level-0 .text { font-size: 19px; }
+    .level-1 .text { font-size: 16px; }
+    .level-2 .text { font-size: 15px; }
+    .icon-btn { width: 34px; height: 34px; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .btn { padding: 10px 14px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Checkliste</h1>
+    <p class="subtitle">Punkte abhaken, hinzufügen, bearbeiten. Mit Pfeilen die Ebene ändern.</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" id="addMain">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Neuer Hauptpunkt
+    </button>
+    <button class="btn" id="exportBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportieren
+    </button>
+    <button class="btn" id="importBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importieren
+    </button>
+    <input type="file" id="importInput" accept=".json" style="display:none">
+  </div>
+
+  <div class="progress-card">
+    <span class="progress-text" id="progressText">0 von 0 erledigt</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <button class="add-main-card" id="addMainBottom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Neuer Hauptpunkt
+  </button>
+
+  <p class="footer-note">Daten bleiben auf deinem Gerät. Mit „Exportieren" weitergeben.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'checkliste-v2';
+const MAX_DEPTH = 2;
+
+let state = [];
+let nextId = 1;
+
+function genId() { return 'p' + (nextId++); }
+
+function defaultData() {
+  return [{
+    id: genId(),
+    text: 'Kontoeröffnung',
+    done: false,
+    children: [
+      { id: genId(), text: 'Termin finden (heute?)', done: false, children: [] },
+      { id: genId(), text: 'Transport', done: false, children: [] }
+    ]
+  }];
+}
+
+function migrate(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map(item => ({
+    id: item.id || genId(),
+    text: item.text || '',
+    done: !!item.done,
+    children: migrate(item.children || item.subs || [])
+  }));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.items)) {
+        state = migrate(parsed.items);
+        nextId = parsed.nextId || 100;
+        return;
+      }
+    }
+    const old = localStorage.getItem('checkliste-v1');
+    if (old) {
+      const parsed = JSON.parse(old);
+      if (Array.isArray(parsed.items)) {
+        state = migrate(parsed.items);
+        nextId = parsed.nextId || 100;
+        save();
+        return;
+      }
+    }
+  } catch(e) {}
+  state = defaultData();
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state, nextId }));
+  } catch(e) {}
+}
+
+function findPath(id, nodes, path) {
+  nodes = nodes || state;
+  path = path || [];
+  for (let i = 0; i < nodes.length; i++) {
+    const newPath = path.concat([{ array: nodes, idx: i }]);
+    if (nodes[i].id === id) return newPath;
+    const found = findPath(id, nodes[i].children, newPath);
+    if (found) return found;
+  }
+  return null;
+}
+
+function getNodeById(id) {
+  const p = findPath(id);
+  if (!p) return null;
+  const last = p[p.length - 1];
+  return last.array[last.idx];
+}
+
+function setDoneRecursive(node, done) {
+  node.done = done;
+  node.children.forEach(c => setDoneRecursive(c, done));
+}
+
+function refreshParentStates(nodes) {
+  nodes = nodes || state;
+  for (const n of nodes) {
+    if (n.children.length > 0) {
+      refreshParentStates(n.children);
+      n.done = n.children.every(c => c.done);
+    }
+  }
+}
+
+function toggle(id) {
+  const node = getNodeById(id);
+  if (!node) return;
+  node.done = !node.done;
+  save(); render();
+}
+
+function addTopLevel() {
+  const newNode = { id: genId(), text: 'Neuer Punkt', done: false, children: [] };
+  state.push(newNode);
+  save(); render(newNode.id);
+}
+
+function addChild(parentId) {
+  const path = findPath(parentId);
+  if (!path) return;
+  if (path.length - 1 >= MAX_DEPTH) return;
+  const parent = getNodeById(parentId);
+  const newNode = { id: genId(), text: 'Neuer Unterpunkt', done: false, children: [] };
+  parent.children.push(newNode);
+  if (parent.done) parent.done = false;
+  save(); render(newNode.id);
+}
+
+function deleteNode(id) {
+  const path = findPath(id);
+  if (!path) return;
+  const last = path[path.length - 1];
+  const node = last.array[last.idx];
+  if (!confirm('Punkt „' + node.text + '" wirklich löschen?')) return;
+  last.array.splice(last.idx, 1);
+  save(); render();
+  toast('Gelöscht');
+}
+
+function canDemote(id) {
+  const path = findPath(id);
+  if (!path) return false;
+  if (path.length - 1 >= MAX_DEPTH) return false;
+  return path[path.length - 1].idx > 0;
+}
+
+function canPromote(id) {
+  const path = findPath(id);
+  if (!path) return false;
+  return path.length >= 2;
+}
+
+function demote(id) {
+  if (!canDemote(id)) return;
+  const path = findPath(id);
+  const last = path[path.length - 1];
+  const node = last.array[last.idx];
+  const prev = last.array[last.idx - 1];
+  last.array.splice(last.idx, 1);
+  prev.children.push(node);
+  save(); render();
+}
+
+function promote(id) {
+  if (!canPromote(id)) return;
+  const path = findPath(id);
+  const last = path[path.length - 1];
+  const parent = path[path.length - 2];
+  const node = last.array[last.idx];
+  last.array.splice(last.idx, 1);
+  parent.array.splice(parent.idx + 1, 0, node);
+  save(); render();
+}
+
+function startEdit(id) {
+  const wrap = document.querySelector('[data-row="' + id + '"]');
+  if (!wrap) return;
+  const span = wrap.querySelector('.text');
+  if (!span) return;
+  const current = span.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.className = 'text-edit';
+  span.replaceWith(input);
+  input.focus();
+  input.select();
+
+  const finish = (commit) => {
+    const newVal = input.value.trim();
+    if (commit && newVal && newVal !== current) {
+      const node = getNodeById(id);
+      if (node) { node.text = newVal; save(); }
+    }
+    render();
+  };
+
+  input.addEventListener('blur', () => finish(true));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = current; input.blur(); }
+  });
+}
+
+function exportData() {
+  const data = JSON.stringify({ items: state, nextId, exportedAt: new Date().toISOString() }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'checkliste-' + date + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Datei wird heruntergeladen');
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed.items)) throw new Error('Falsches Format');
+      if (!confirm('Aktuelle Liste durch importierte Liste ersetzen?')) return;
+      state = migrate(parsed.items);
+      nextId = parsed.nextId || 1000;
+      save(); render();
+      toast('Liste importiert');
+    } catch(err) {
+      alert('Datei konnte nicht gelesen werden.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function calcProgress(nodes) {
+  nodes = nodes || state;
+  let total = 0, done = 0;
+  for (const n of nodes) {
+    total++;
+    if (n.done) done++;
+    const c = calcProgress(n.children);
+    total += c.total;
+    done += c.done;
+  }
+  return { total, done };
+}
+
+function svgCheck() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
+function svgEdit() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'; }
+function svgArrowLeft() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>'; }
+function svgArrowRight() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'; }
+function svgTrash() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>'; }
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderNode(node, depth) {
+  const promoteOk = canPromote(node.id);
+  const demoteOk = canDemote(node.id);
+  const canAddChild = depth < MAX_DEPTH;
+
+  const wrapperOpen = depth === 0
+    ? `<div class="node-card level-${depth}${node.done ? ' done' : ''}">`
+    : `<div class="level-${depth}">`;
+
+  let childrenHtml = '';
+  if (node.children.length > 0 || canAddChild) {
+    childrenHtml = '<div class="children">';
+    childrenHtml += node.children.map(c => renderNode(c, depth + 1)).join('');
+    if (canAddChild) {
+      const label = depth === 0 ? '+ Unterpunkt' : '+ Unter-Unterpunkt';
+      childrenHtml += `<button class="add-child-btn" data-action="add-child" data-target="${node.id}">${label}</button>`;
+    }
+    childrenHtml += '</div>';
+  }
+
+  return `
+    ${wrapperOpen}
+      <div class="row${node.done ? ' done' : ''}" data-row="${node.id}">
+        <button class="check${node.done ? ' checked' : ''}" data-action="toggle" data-target="${node.id}" aria-label="Abhaken">${svgCheck()}</button>
+        <span class="text" data-action="edit" data-target="${node.id}">${escapeHtml(node.text)}</span>
+        <div class="actions">
+          <button class="icon-btn" data-action="edit" data-target="${node.id}" aria-label="Bearbeiten">${svgEdit()}</button>
+          <button class="icon-btn" data-action="promote" data-target="${node.id}" aria-label="Eine Ebene höher" ${promoteOk ? '' : 'disabled'}>${svgArrowLeft()}</button>
+          <button class="icon-btn" data-action="demote" data-target="${node.id}" aria-label="Eine Ebene tiefer" ${demoteOk ? '' : 'disabled'}>${svgArrowRight()}</button>
+          <button class="icon-btn danger" data-action="delete" data-target="${node.id}" aria-label="Löschen">${svgTrash()}</button>
+        </div>
+      </div>
+      ${childrenHtml}
+    </div>
+  `;
+}
+
+function render(focusId) {
+  const list = document.getElementById('list');
+  if (state.length === 0) {
+    list.innerHTML = '<div class="empty"><p>Noch keine Einträge</p><span>Mit „Neuer Hauptpunkt" loslegen.</span></div>';
+  } else {
+    list.innerHTML = state.map(n => renderNode(n, 0)).join('');
+  }
+
+  const { total, done } = calcProgress();
+  const txt = total === 0 ? 'Noch keine Einträge' : `${done} von ${total} erledigt`;
+  document.getElementById('progressText').textContent = txt;
+  document.getElementById('progressFill').style.width = (total ? (done/total*100) : 0) + '%';
+
+  if (focusId) startEdit(focusId);
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+document.getElementById('list').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.disabled) return;
+  const action = btn.dataset.action;
+  const target = btn.dataset.target;
+  if (action === 'toggle') toggle(target);
+  else if (action === 'edit') startEdit(target);
+  else if (action === 'promote') promote(target);
+  else if (action === 'demote') demote(target);
+  else if (action === 'add-child') addChild(target);
+  else if (action === 'delete') deleteNode(target);
+});
+
+document.getElementById('addMain').addEventListener('click', addTopLevel);
+document.getElementById('addMainBottom').addEventListener('click', addTopLevel);
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
+document.getElementById('importInput').addEventListener('change', (e) => {
+  if (e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = '';
+});
+
+load();
+render();
+</script>
+</body>
+</html>
